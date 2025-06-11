@@ -2,14 +2,23 @@ package main
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/PulseCoinOrg/pulsecoin/common"
-	"github.com/PulseCoinOrg/pulsecoin/core/types"
+	"github.com/PulseCoinOrg/pulsecoin/pulsedb/leveldb"
 )
 
 func main() {
-	parentHash := common.Sha256Hash([]byte("random-data"))
-	block := types.NewBlock(time.Now().UnixNano(), parentHash, []string{})
-	fmt.Println(block.Hash.String())
+	db, err := leveldb.New("chain")
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.Put([]byte("1"), []byte("hello world"))
+	err = db.Put([]byte("2"), []byte("world hello"))
+
+	iter := db.NewIterator([]byte(""))
+	defer iter.Release()
+
+	for ok := iter.First(); ok; ok = iter.Next() {
+		fmt.Printf("key = %s, value = %s\n", iter.Key(), iter.Value())
+	}
 }
