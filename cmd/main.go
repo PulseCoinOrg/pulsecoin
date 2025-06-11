@@ -18,12 +18,22 @@ func main() {
 		slog.Error("failed to create chain", "err", err.Error())
 	}
 	hash := common.Sha256Hash([]byte("Hello World!"))
-	block := types.NewBlock(time.Now().UnixNano(), hash, []string{})
+	block0 := types.NewBlock(time.Now().UnixNano(), hash, []string{})
+	block1 := types.NewBlock(time.Now().UnixNano(), block0.Hash, []string{})
+	block2 := types.NewBlock(time.Now().UnixNano(), block1.Hash, []string{})
+	block3 := types.NewBlock(time.Now().UnixNano(), block2.Hash, []string{})
 
-	err = chain.InsertOne(block)
+	err = chain.InsertMany([]*types.Block{block0, block1, block2, block3})
 	if err != nil {
-		slog.Error("failed to insert one block into the chain", "hash", block.Hash.String())
+		slog.Error("failed to insert many blocks", "err", err.Error())
 	}
 
-	slog.Info("inserted one block into the chain...", "hash", block.Hash.String())
+	for _, block := range []*types.Block{block0, block1, block2, block3} {
+		slog.Info("block has been inserted", "hash", block.Hash.String())
+	}
+
+	isSane := chain.SanityCheck()
+	if isSane == false {
+		slog.Error("chain is invalid")
+	}
 }

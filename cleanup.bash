@@ -1,3 +1,9 @@
 #!/bin/bash
 
-rm -rf ./chain
+echo "starting cleanup process..."
+
+make clean && rm -rf ./chain
+
+echo "make clean && rm -rf ./chain"
+
+echo "done."
