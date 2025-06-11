@@ -3,3 +3,6 @@ build:
 
 run:
 	./pulse
+
+clean:
+	rm ./pulse

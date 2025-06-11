@@ -26,6 +26,9 @@ func (h Hash) String() string {
 	return hex.EncodeToString(h[:])
 }
 
+// an address points to a specific wallet in memory.
+// each wallet contains a PrivateKey and *Address*
+// PrivateKey -> PublicKey -> Address
 type Address [AddressLength]byte
 
 func NewAddr(pubKeyBytes []byte) Address {

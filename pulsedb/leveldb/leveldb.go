@@ -10,6 +10,7 @@ type Database struct {
 	db *leveldb.DB
 }
 
+// New() creates a new instance of leveldb and returns a wrapper struct around leveldb
 func New(file string) (*Database, error) {
 	db, err := leveldb.OpenFile(file, nil)
 	if err != nil {
@@ -32,6 +33,7 @@ func (db *Database) Delete(key []byte) error {
 	return db.db.Delete(key, nil)
 }
 
+// returns true if the key-value store has a specific key
 func (db *Database) Has(key []byte) (bool, error) {
 	return db.db.Has(key, nil)
 }
@@ -47,26 +49,32 @@ func (db *Database) NewIterator(prefix []byte) *Iterator {
 	}
 }
 
+// retrieves the first element in the key-value store
 func (it *Iterator) First() bool {
 	return it.iter.First()
 }
 
+// returns true if there is a next item in memory
 func (it *Iterator) Next() bool {
 	return it.iter.Next()
 }
 
+// gets the key from the iterator
 func (it *Iterator) Key() []byte {
 	return it.iter.Key()
 }
 
+// gets the value from the iterator
 func (it *Iterator) Value() []byte {
 	return it.iter.Value()
 }
 
+// returns true if the iterator is valid
 func (it *Iterator) Valid() bool {
 	return it.iter.Valid()
 }
 
+// retrieves an iterator's error if any
 func (it *Iterator) Error() error {
 	return it.iter.Error()
 }
