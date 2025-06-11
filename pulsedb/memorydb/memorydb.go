@@ -20,12 +20,14 @@ func New() *Database {
 	}
 }
 
+// creates a new key-value store with a size cap
 func NewWithLimit(limit int) *Database {
 	return &Database{
 		db: make(map[string][]byte, limit),
 	}
 }
 
+// closes the in-memory key-value store
 func (db *Database) Close() error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
@@ -33,6 +35,7 @@ func (db *Database) Close() error {
 	return nil
 }
 
+// retrieves an item from the in-memory key-value store
 func (db *Database) Get(key []byte) ([]byte, error) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
@@ -42,6 +45,7 @@ func (db *Database) Get(key []byte) ([]byte, error) {
 	return db.db[string(key)], nil
 }
 
+// inserts an item into the in-memory key-value store
 func (db *Database) Put(key, value []byte) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
@@ -52,6 +56,7 @@ func (db *Database) Put(key, value []byte) error {
 	return nil
 }
 
+// deletes an item from the in-memory key-value store
 func (db *Database) Delete(key []byte) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
