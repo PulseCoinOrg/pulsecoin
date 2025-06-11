@@ -22,7 +22,7 @@ func NewBlockChain() (*BlockChain, error) {
 	}, nil
 }
 
-func (chain *BlockChain) InsertBlock(block *types.Block) error {
+func (chain *BlockChain) InsertOne(block *types.Block) error {
 	if chain.db == nil {
 		return ErrChainDatabaseClosed
 	}
