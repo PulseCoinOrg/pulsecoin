@@ -11,6 +11,7 @@ type Transaction struct {
 	FromAddr      common.Address
 	RecipientAddr common.Address
 	Charge        int64
+	Hash          common.Hash
 	Time          int64
 }
 
@@ -20,12 +21,14 @@ func NewTx(
 	charge int64,
 	time int64,
 ) *Transaction {
-	return &Transaction{
+	tx := &Transaction{
 		FromAddr:      from,
 		RecipientAddr: to,
 		Charge:        charge,
 		Time:          time,
 	}
+	tx.Hash = common.Sha256Hash(tx.Bytes())
+	return tx
 }
 
 func (tx *Transaction) Bytes() []byte {

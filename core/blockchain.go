@@ -2,6 +2,8 @@ package core
 
 import (
 	"bytes"
+	"fmt"
+	"time"
 
 	"github.com/PulseCoinOrg/pulsecoin/common"
 	"github.com/PulseCoinOrg/pulsecoin/core/types"
@@ -11,10 +13,11 @@ import (
 type BlockChain struct {
 	db          *leveldb.Database
 	writeBuffer map[common.Hash]*types.Block
+	lastBlock   *types.Block
 }
 
 func NewBlockChain() (*BlockChain, error) {
-	db, err := leveldb.New("chain")
+	db, err := leveldb.New("chaindb-out")
 	if err != nil {
 		return nil, err
 	}
@@ -24,28 +27,40 @@ func NewBlockChain() (*BlockChain, error) {
 	}, nil
 }
 
-// inserts just one block into the blockchain
+func createGenesis() *types.Block {
+	genesis := types.NewBlock(time.Now().UnixNano(), []*types.Transaction{})
+	return genesis
+}
+
 func (chain *BlockChain) InsertOne(block *types.Block) error {
 	if chain.db == nil {
 		return ErrChainDatabaseClosed
 	}
-
 	if chain.writeBuffer == nil {
 		return ErrChainWriteBufferClosed
 	}
 
-	chain.writeBuffer[block.Hash] = block
+	// Genesis case
+	if chain.lastBlock == nil {
+		genesis := createGenesis()
+		fmt.Printf("Genesis block created at %d (UNIX), Hash: %s\n", time.Now().Unix(), genesis.Hash.String())
+		chain.writeBuffer[genesis.Hash] = genesis
+		if err := chain.db.Put(genesis.Hash.Bytes(), genesis.Bytes()); err != nil {
+			return err
+		}
+		chain.lastBlock = genesis
+		block.ParentHash = genesis.Hash
+	} else {
+		block.ParentHash = chain.lastBlock.Hash
+	}
 
-	// TODO change this line to be more clean
-	// key := ...
-	// value := ...
-	err := chain.db.Put(
-		chain.writeBuffer[block.Hash].Hash.Bytes(),
-		chain.writeBuffer[block.Hash].Bytes(),
-	)
-	if err != nil {
+	chain.writeBuffer[block.Hash] = block
+	if err := chain.db.Put(block.Hash.Bytes(), block.Bytes()); err != nil {
 		return err
 	}
+
+	// Update latest block
+	chain.lastBlock = block
 
 	return nil
 }
@@ -58,13 +73,12 @@ func (chain *BlockChain) InsertMany(blocks []*types.Block) error {
 	if chain.writeBuffer == nil {
 		return ErrChainWriteBufferClosed
 	}
-	var err error
-	for _, block := range blocks {
-		err = chain.InsertOne(block)
-	}
 
-	if err != nil {
-		return err
+	for _, block := range blocks {
+		// manually trigger DB flush to update latest block before inserting the next
+		if err := chain.InsertOne(block); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -103,4 +117,14 @@ func (chain *BlockChain) SanityCheck() bool {
 	}
 
 	return true
+}
+
+func (chain *BlockChain) BlockByHash(hash string) *types.Block {
+	for h, block := range chain.writeBuffer {
+		if h.String() == hash {
+			return block
+		}
+	}
+
+	return nil
 }

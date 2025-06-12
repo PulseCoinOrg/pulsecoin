@@ -2,8 +2,8 @@
 
 echo "starting cleanup process..."
 
-make clean && rm -rf ./chain
+make clean && rm -rf ./chaindb-out
 
-echo "make clean && rm -rf ./chain"
+echo "make clean && rm -rf ./chaindb-out"
 
 echo "done."

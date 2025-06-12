@@ -1,9 +1,15 @@
 package leveldb
 
 import (
+	"errors"
+
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/util"
+)
+
+var (
+	ErrNotFound = errors.New("not found in key-value store")
 )
 
 type Database struct {
@@ -38,6 +44,18 @@ func (db *Database) Has(key []byte) (bool, error) {
 	return db.db.Has(key, nil)
 }
 
+// gets the previous item's value in the key-value store
+func (db *Database) PreviousItem() ([]byte, error) {
+	iter := db.NewIterator(nil)
+	defer iter.Release()
+
+	if !iter.Last() {
+		return nil, ErrNotFound
+	}
+
+	return iter.Value(), nil
+}
+
 type Iterator struct {
 	iter iterator.Iterator
 }
@@ -49,9 +67,19 @@ func (db *Database) NewIterator(prefix []byte) *Iterator {
 	}
 }
 
-// retrieves the first element in the key-value store
+// returns true based on the first element inserted
 func (it *Iterator) First() bool {
 	return it.iter.First()
+}
+
+// returns true if the last element is found
+func (it *Iterator) Last() bool {
+	return it.iter.Last()
+}
+
+// returns true if the previous item is found
+func (it *Iterator) Prev() bool {
+	return it.iter.Prev()
 }
 
 // returns true if there is a next item in memory
