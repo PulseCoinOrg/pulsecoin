@@ -17,26 +17,25 @@ func Exit() {
 }
 
 func GenKeyPair(pwd string) {
-	keys, err := accounts.NewKeyPair(pwd)
+	kp, err := accounts.NewKeyPair(pwd)
 	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
+	}
+	err = kp.PrintPublicKey()
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
-	err = keys.PrintPublicKey()
+	keyHash := common.Sha256Hash([]byte("private-key-hash-file-name")[:10]) // TODO make a random string generator for this
+	err = kp.StorePrivateKey(fmt.Sprintf("gpulse-secret-key_%s", keyHash.String()))
 	if err != nil {
-		panic(err)
-	}
-
-	keyHash := common.Sha256Hash([]byte("private-key-hash-file-name"))
-	err = keys.StorePrivateKey(fmt.Sprintf("gpulse-secret-key_%s", keyHash.String()))
-	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
 	}
 }
 
-func ViewKey(path string, pwd string) {
+func ViewSigningKey(path string, pwd string) {
 	err := accounts.ViewPrivateKey(path, pwd)
 	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
 	}
 }

@@ -52,24 +52,30 @@ func NewKeyPair(pwd string) (*KeyPair, error) {
 	}, nil
 }
 
+func printWarning() {
+	fmt.Println("Your public key is sharable, this is how people communicate with your wallet")
+	fmt.Println("You NEVER share your private key, this is how you access your funds")
+	fmt.Println("Your address is how people identify your wallet")
+}
+
 func (kp *KeyPair) GetPublicKeyBytes(privKey *ecdsa.PrivateKey) []byte {
 	pubKey := privKey.PublicKey
 	pubKeyBytes := append(pubKey.X.Bytes(), pubKey.Y.Bytes()...)
 	return pubKeyBytes
 }
 
-// TODO check if kp.SigningKey is nil
 func (kp *KeyPair) PrintPublicKey() error {
 	if kp.SigningKey == nil {
 		return ErrKeyNotFound
 	}
+	printWarning()
 	fmt.Println("your public key is: ", hex.EncodeToString(kp.GetPublicKeyBytes(kp.SigningKey)))
 	return nil
 }
 
 func (kp *KeyPair) StorePrivateKey(path string) error {
-	pubKeyBytes := kp.GetPublicKeyBytes(kp.SigningKey)
-	err := os.WriteFile(path, pubKeyBytes, 0644)
+	privKeyBytes := kp.SigningKey.D.Bytes()
+	err := os.WriteFile(path, privKeyBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -79,6 +85,9 @@ func (kp *KeyPair) StorePrivateKey(path string) error {
 	return nil
 }
 
+/*
+TODO: check if the password is matching the initial password given at GenKeyPair() and NewKeyPair()
+*/
 func ViewPrivateKey(path string, pwd string) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
