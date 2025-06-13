@@ -3,8 +3,8 @@ package main
 import "github.com/PulseCoinOrg/pulsecoin/console"
 
 func main() {
-	cons := console.New()
-	if err := cons.Run(); err != nil {
+	console := console.New()
+	if err := console.Run(); err != nil {
 		panic(err)
 	}
 }

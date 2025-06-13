@@ -12,6 +12,8 @@ import (
 
 var (
 	ErrKeyNotFound = errors.New("key not found")
+	ErrPwdNotSet   = errors.New("password not set, you must set a password")
+	ErrWrongPwd    = errors.New("password is incorrect")
 )
 
 type KeyGen interface {
@@ -23,22 +25,28 @@ type KeyGen interface {
 	PrintPublicKey()
 
 	StorePrivateKey(path string) error
-	ViewPrivateKey(path string) error // TODO implement
+	ViewPrivateKey(path string, pwd string) error // TODO implement
 }
 
 type KeyPair struct {
 	KeyGen
+	Pwd        string
 	SigningKey *ecdsa.PrivateKey
 	PublicKey  *ecdsa.PublicKey
 }
 
-func (kp *KeyPair) New() (*KeyPair, error) {
+func NewKeyPair(pwd string) (*KeyPair, error) {
 	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, err
 	}
 
+	if pwd == "" {
+		return nil, ErrPwdNotSet
+	}
+
 	return &KeyPair{
+		Pwd:        pwd,
 		SigningKey: privKey,
 		PublicKey:  &privKey.PublicKey,
 	}, nil
@@ -68,5 +76,15 @@ func (kp *KeyPair) StorePrivateKey(path string) error {
 
 	fmt.Println("your private key was stored at ", path)
 
+	return nil
+}
+
+func ViewPrivateKey(path string, pwd string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	privKey := hex.EncodeToString(data)
+	fmt.Println("your private key is: ", privKey)
 	return nil
 }
