@@ -40,7 +40,8 @@ func New(path string) (*Wallet, error) {
 		return nil, err
 	}
 
-	fmt.Println("your private key was stored at > ", path)
+	fmt.Println("your private key was stored at >", path)
+	fmt.Print("\n")
 
 	return wallet, nil
 }

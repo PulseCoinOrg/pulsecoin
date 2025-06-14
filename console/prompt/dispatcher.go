@@ -22,6 +22,14 @@ func (d *Dispatcher) Register(cmd *Command) {
 	d.commands[cmd.Name] = cmd
 }
 
+func (d *Dispatcher) DumpCommands() {
+	idx := 0
+	for _, cmd := range d.commands {
+		idx++
+		fmt.Printf("cmd %d: %s\n", idx, cmd.Name)
+	}
+}
+
 func (d *Dispatcher) Call(name string, args ...string) error {
 	cmd, exists := d.commands[name]
 	if !exists {

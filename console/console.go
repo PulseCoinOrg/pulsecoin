@@ -1,6 +1,10 @@
 package console
 
-import "github.com/PulseCoinOrg/pulsecoin/console/prompt"
+import (
+	"fmt"
+
+	"github.com/PulseCoinOrg/pulsecoin/console/prompt"
+)
 
 var commands = []string{
 	"keygen",
@@ -22,6 +26,15 @@ func (c *Console) Run() error {
 	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "exit", Func: Exit})
 	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "wallet-new", Func: WalletNew})
 	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "privkey-view", Func: PrivKeyView})
+	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "privkey-rev", Func: PrivKeyRevoke})
+
+	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "cmd-dump", Func: func() {
+		c.TermPrompt.Dispatcher.DumpCommands()
+	}})
+	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "cls", Func: func() {
+		fmt.Print("\033[H\033[2J")
+	}})
+
 	err := c.TermPrompt.PromptInput("gpulse> ")
 	if err != nil {
 		return err
