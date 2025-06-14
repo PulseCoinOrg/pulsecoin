@@ -1,11 +1,10 @@
-package coldwallet
+package accounts
 
 import (
 	"bytes"
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"encoding/gob"
+	"fmt"
 
 	"github.com/PulseCoinOrg/pulsecoin/common"
 )
@@ -16,13 +15,15 @@ type Wallet struct {
 	Amount     int64 // wallet balance
 }
 
-func New() (*Wallet, error) {
-	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+func New(path string) (*Wallet, error) {
+	keyPair, err := GenerateKeys()
 	if err != nil {
 		return nil, err
 	}
 
-	pubKey := privKey.PublicKey
+	pubKey := keyPair.PublicKey
+	privKey := keyPair.PrivateKey
+
 	pubKeyBytes := append(pubKey.X.Bytes(), pubKey.Y.Bytes()...)
 
 	addr := common.NewAddr(pubKeyBytes)
@@ -31,6 +32,15 @@ func New() (*Wallet, error) {
 		PrivateKey: privKey,
 		Address:    addr,
 	}
+
+	keyPair.PrintPublicKey()
+
+	err = keyPair.StorePrivateKey(path)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("your private key was stored at > ", path)
 
 	return wallet, nil
 }

@@ -5,95 +5,58 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"os"
 )
 
-var (
-	ErrKeyNotFound = errors.New("key not found")
-	ErrPwdNotSet   = errors.New("password not set, you must set a password")
-	ErrWrongPwd    = errors.New("password is incorrect")
-)
-
-type KeyGen interface {
-	New() error
-
-	GetPublicKeyBytes(privKey *ecdsa.PrivateKey) []byte
-
-	// for the console
-	PrintPublicKey()
-
-	StorePrivateKey(path string) error
-	ViewPrivateKey(path string, pwd string) error // TODO implement
-}
-
 type KeyPair struct {
-	KeyGen
-	Pwd        string
-	SigningKey *ecdsa.PrivateKey
 	PublicKey  *ecdsa.PublicKey
+	PrivateKey *ecdsa.PrivateKey
 }
 
-func NewKeyPair(pwd string) (*KeyPair, error) {
+func GenerateKeys() (*KeyPair, error) {
 	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, err
 	}
-
-	if pwd == "" {
-		return nil, ErrPwdNotSet
-	}
-
+	pubKey := privKey.PublicKey
 	return &KeyPair{
-		Pwd:        pwd,
-		SigningKey: privKey,
-		PublicKey:  &privKey.PublicKey,
+		PublicKey:  &pubKey,
+		PrivateKey: privKey,
 	}, nil
 }
 
 func printWarning() {
-	fmt.Println("Your public key is sharable, this is how people communicate with your wallet")
-	fmt.Println("You NEVER share your private key, this is how you access your funds")
-	fmt.Println("Your address is how people identify your wallet")
+	fmt.Println("\n")
+	fmt.Println("\t\tYou NEVER share your private key with anyone")
+	fmt.Println("\t\tYour public key is sharable, and this is how people send you funds")
+	fmt.Println("\n")
 }
 
-func (kp *KeyPair) GetPublicKeyBytes(privKey *ecdsa.PrivateKey) []byte {
-	pubKey := privKey.PublicKey
-	pubKeyBytes := append(pubKey.X.Bytes(), pubKey.Y.Bytes()...)
-	return pubKeyBytes
-}
-
-func (kp *KeyPair) PrintPublicKey() error {
-	if kp.SigningKey == nil {
-		return ErrKeyNotFound
-	}
-	printWarning()
-	fmt.Println("your public key is: ", hex.EncodeToString(kp.GetPublicKeyBytes(kp.SigningKey)))
-	return nil
+func (kp *KeyPair) PrintPublicKey() {
+	pubKeyBytes := append(kp.PublicKey.X.Bytes(), kp.PublicKey.Y.Bytes()...)
+	pubKeyString := hex.EncodeToString(pubKeyBytes)
+	fmt.Printf("Your public key is > %s\n", pubKeyString)
 }
 
 func (kp *KeyPair) StorePrivateKey(path string) error {
-	privKeyBytes := kp.SigningKey.D.Bytes()
+	privKeyBytes := kp.PrivateKey.D.Bytes()
 	err := os.WriteFile(path, privKeyBytes, 0644)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("your private key was stored at ", path)
-
 	return nil
 }
 
-/*
-TODO: check if the password is matching the initial password given at GenKeyPair() and NewKeyPair()
-*/
-func ViewPrivateKey(path string, pwd string) error {
+// TODO add password support
+func ViewPrivateKey(path string) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	privKey := hex.EncodeToString(data)
-	fmt.Println("your private key is: ", privKey)
+
+	printWarning()
+	fmt.Printf("> %s\n", hex.EncodeToString(data))
+
 	return nil
 }

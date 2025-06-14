@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/PulseCoinOrg/pulsecoin/accounts"
-	"github.com/PulseCoinOrg/pulsecoin/common"
+	"github.com/charmbracelet/log"
 )
 
 func Help() {
@@ -16,26 +16,16 @@ func Exit() {
 	os.Exit(1)
 }
 
-func GenKeyPair(pwd string) {
-	kp, err := accounts.NewKeyPair(pwd)
+func WalletNew(path string) {
+	_, err := accounts.New(path)
 	if err != nil {
-		fmt.Println(err.Error())
-	}
-	err = kp.PrintPublicKey()
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	keyHash := common.Sha256Hash([]byte("private-key-hash-file-name")[:10]) // TODO make a random string generator for this
-	err = kp.StorePrivateKey(fmt.Sprintf("gpulse-secret-key_%s", keyHash.String()))
-	if err != nil {
-		fmt.Println(err.Error())
+		log.Error(err.Error())
 	}
 }
 
-func ViewSigningKey(path string, pwd string) {
-	err := accounts.ViewPrivateKey(path, pwd)
+func PrivKeyView(path string) {
+	err := accounts.ViewPrivateKey(path)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Error(err.Error())
 	}
 }

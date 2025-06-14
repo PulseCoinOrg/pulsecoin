@@ -1,5 +1,5 @@
 build:
-	go build -o ./pulse ./cmd
+	go build -o ./pulse ./cmd/gpulse
 
 run:
 	./pulse

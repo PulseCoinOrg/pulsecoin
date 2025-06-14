@@ -3,7 +3,6 @@ package accounts
 import (
 	"errors"
 
-	"github.com/PulseCoinOrg/pulsecoin/accounts/coldwallet"
 	"github.com/PulseCoinOrg/pulsecoin/common"
 	"github.com/PulseCoinOrg/pulsecoin/pulsedb/memorydb"
 )
@@ -14,17 +13,17 @@ var (
 
 type Accounts struct {
 	memory      *memorydb.Database
-	writeBuffer map[common.Address]*coldwallet.Wallet
+	writeBuffer map[common.Address]*Wallet
 }
 
 func NewManager() *Accounts {
 	return &Accounts{
 		memory:      memorydb.New(),
-		writeBuffer: make(map[common.Address]*coldwallet.Wallet),
+		writeBuffer: make(map[common.Address]*Wallet),
 	}
 }
 
-func (acs *Accounts) InsertWallet(wallet *coldwallet.Wallet) error {
+func (acs *Accounts) InsertWallet(wallet *Wallet) error {
 	if acs.writeBuffer == nil {
 		return ErrWriteBufferClosed
 	}

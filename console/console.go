@@ -19,9 +19,9 @@ func New() *Console {
 
 func (c *Console) Run() error {
 	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "help", Func: Help})
-	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "keygen", Func: GenKeyPair})
-	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "viewprivkey", Func: ViewSigningKey})
 	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "exit", Func: Exit})
+	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "wallet-new", Func: WalletNew})
+	c.TermPrompt.Dispatcher.Register(&prompt.Command{Name: "privkey-view", Func: PrivKeyView})
 	err := c.TermPrompt.PromptInput("gpulse> ")
 	if err != nil {
 		return err
