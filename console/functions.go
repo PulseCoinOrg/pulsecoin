@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/PulseCoinOrg/pulsecoin/accounts"
+	"github.com/PulseCoinOrg/pulsecoin/core"
+	"github.com/PulseCoinOrg/pulsecoin/core/types"
 	"github.com/charmbracelet/log"
 )
 
@@ -50,4 +52,31 @@ func PrivKeyRevoke(path string) {
 	} else if confirmed == "n" {
 		os.Exit(1)
 	}
+}
+
+func BlockChainCreate(path string) {
+	chain, err := core.NewBlockChain()
+	if err != nil {
+		log.Error(err.Error())
+	}
+
+	testBlock := types.NewBlock(time.Now().UnixNano(), []*types.Transaction{})
+	fmt.Println(testBlock.Hash.String())
+
+	err = chain.InsertOne(testBlock)
+	if err != nil {
+		log.Error(err.Error())
+	}
+}
+
+func BlockSearch(chain *core.BlockChain, hash string) {
+	block := chain.BlockByHash(hash)
+
+	if block == nil {
+		log.Info("block not found")
+	}
+
+	fmt.Print("\n")
+	fmt.Println(block.MarshalJSON())
+	fmt.Print("\n")
 }

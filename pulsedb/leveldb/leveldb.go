@@ -56,6 +56,10 @@ func (db *Database) PreviousItem() ([]byte, error) {
 	return iter.Value(), nil
 }
 
+func (db *Database) Close() {
+	db.db.Close()
+}
+
 type Iterator struct {
 	iter iterator.Iterator
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type BlockChain struct {
-	db          *leveldb.Database
+	Database    *leveldb.Database
 	writeBuffer map[common.Hash]*types.Block
 	lastBlock   *types.Block
 }
@@ -22,7 +22,7 @@ func NewBlockChain() (*BlockChain, error) {
 		return nil, err
 	}
 	return &BlockChain{
-		db:          db,
+		Database:    db,
 		writeBuffer: make(map[common.Hash]*types.Block),
 	}, nil
 }
@@ -33,7 +33,7 @@ func createGenesis() *types.Block {
 }
 
 func (chain *BlockChain) InsertOne(block *types.Block) error {
-	if chain.db == nil {
+	if chain.Database == nil {
 		return ErrChainDatabaseClosed
 	}
 	if chain.writeBuffer == nil {
@@ -45,7 +45,7 @@ func (chain *BlockChain) InsertOne(block *types.Block) error {
 		genesis := createGenesis()
 		fmt.Printf("Genesis block created at %d (UNIX), Hash: %s\n", time.Now().Unix(), genesis.Hash.String())
 		chain.writeBuffer[genesis.Hash] = genesis
-		if err := chain.db.Put(genesis.Hash.Bytes(), genesis.Bytes()); err != nil {
+		if err := chain.Database.Put(genesis.Hash.Bytes(), genesis.Bytes()); err != nil {
 			return err
 		}
 		chain.lastBlock = genesis
@@ -55,7 +55,7 @@ func (chain *BlockChain) InsertOne(block *types.Block) error {
 	}
 
 	chain.writeBuffer[block.Hash] = block
-	if err := chain.db.Put(block.Hash.Bytes(), block.Bytes()); err != nil {
+	if err := chain.Database.Put(block.Hash.Bytes(), block.Bytes()); err != nil {
 		return err
 	}
 
@@ -67,7 +67,7 @@ func (chain *BlockChain) InsertOne(block *types.Block) error {
 
 // inserts a chain of blocks into the blockchain
 func (chain *BlockChain) InsertMany(blocks []*types.Block) error {
-	if chain.db == nil {
+	if chain.Database == nil {
 		return ErrChainDatabaseClosed
 	}
 	if chain.writeBuffer == nil {
@@ -86,11 +86,11 @@ func (chain *BlockChain) InsertMany(blocks []*types.Block) error {
 
 // verification that all blocks are valid
 func (chain *BlockChain) SanityCheck() bool {
-	if chain.db == nil {
+	if chain.Database == nil {
 		return false
 	}
 
-	iter := chain.db.NewIterator(nil)
+	iter := chain.Database.NewIterator(nil)
 	defer iter.Release()
 
 	seen := make(map[common.Hash]bool)
@@ -127,4 +127,25 @@ func (chain *BlockChain) BlockByHash(hash string) *types.Block {
 	}
 
 	return nil
+}
+
+func (chain *BlockChain) Copy() *BlockChain {
+	newBuffer := make(map[common.Hash]*types.Block)
+	for hash, block := range chain.writeBuffer {
+		newBlock := *block  // copy the value
+		copied := &newBlock // get pointer to copied block
+		newBuffer[hash] = copied
+	}
+
+	var newLastBlock *types.Block
+	if chain.lastBlock != nil {
+		lastCopy := *chain.lastBlock
+		newLastBlock = &lastCopy
+	}
+
+	return &BlockChain{
+		Database:    chain.Database,
+		writeBuffer: newBuffer,
+		lastBlock:   newLastBlock,
+	}
 }
